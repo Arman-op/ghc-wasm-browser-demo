@@ -1,0 +1,24 @@
+{
+  "name": "ghc-wasm-browser-demo",
+  "version": "1.0.0",
+  "description": "This repository contains a small proof-of-concept project created to evaluate the practicality of using the current GHC/WebAssembly (GHC/Wasm) toolchain for browser-based Haskell applications.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Arman-op/ghc-wasm-browser-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Arman-op/ghc-wasm-browser-demo/issues"
+  },
+  "homepage": "https://github.com/Arman-op/ghc-wasm-browser-demo#readme",
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "^0.4.2"
+  }
+}

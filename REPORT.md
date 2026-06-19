@@ -13,6 +13,7 @@ The project intentionally avoided modifying the GHC/Wasm toolchain itself and in
 * Operating System: Ubuntu 24.04.4 LTS (WSL2)
 * GHC/Wasm Toolchain: GHC 9.14.1 (wasm32-wasi target)
 * Node.js Runtime
+* Browser-side WASI Runtime (`@bjorn3/browser_wasi_shim`)
 * GitHub Pages for deployment
 * Browser Testing: Google Chrome
 
@@ -20,13 +21,14 @@ The project intentionally avoided modifying the GHC/Wasm toolchain itself and in
 
 ## Project Overview
 
-A minimal browser-based prototype was created to evaluate the current workflow.
+A minimal browser-based prototype was created to evaluate the current GHC/Wasm workflow.
 
 The prototype consists of:
 
 * Haskell source code compiled to WebAssembly
 * HTML frontend
 * JavaScript integration layer
+* Browser-side WASI compatibility layer
 * GitHub Pages deployment
 * Documentation of findings and limitations
 
@@ -37,6 +39,7 @@ index.html
 main.js
 style.css
 browser.wasm
+wasi-shim/
 progress.md
 REPORT.md
 LIMITATIONS.md
@@ -88,7 +91,7 @@ Result:
 
 ---
 
-### 3. Runtime Validation
+### 3. Runtime Validation (Node.js)
 
 The generated WebAssembly module was executed using the official runtime.
 
@@ -164,6 +167,62 @@ and additional WASI Preview1 APIs.
 
 ---
 
+## Browser Execution Prototype
+
+The generated WebAssembly module depends on WASI Preview1 imports, which are not provided natively by modern browsers.
+
+To enable browser execution, a browser-side WASI compatibility layer was integrated using:
+
+```text
+@bjorn3/browser_wasi_shim
+```
+
+### Browser Execution Flow
+
+```text
+Haskell Source
+      │
+      ▼
+wasm32-wasi-ghc
+      │
+      ▼
+browser.wasm
+      │
+      ▼
+browser_wasi_shim
+      │
+      ▼
+WebAssembly.instantiate()
+      │
+      ▼
+Haskell Program Execution
+      │
+      ▼
+Browser Output
+```
+
+### Browser Runtime Process
+
+1. `browser.wasm` is fetched using the browser Fetch API.
+2. Required WASI imports are provided through `browser_wasi_shim`.
+3. The WebAssembly module is instantiated.
+4. The Haskell program executes inside the browser.
+5. Standard output is captured and displayed on the webpage.
+
+### Result
+
+The generated GHC/Wasm module executed successfully inside Google Chrome.
+
+Observed output:
+
+```text
+Hello from Browser GHC-Wasm!
+```
+
+This demonstrates that GHC-generated WebAssembly modules can execute directly in modern browsers when provided with a suitable WASI compatibility layer.
+
+---
+
 ## Findings
 
 ### What Worked
@@ -172,42 +231,35 @@ and additional WASI Preview1 APIs.
 
 ✓ Compilation of Haskell source code to WebAssembly
 
-✓ Execution through the official wasm-run runtime
-
-✓ Deployment through GitHub Pages
+✓ Execution through the official `wasm-run` runtime
 
 ✓ Inspection and analysis of generated WebAssembly binaries
 
-✓ Documentation of browser runtime requirements
+✓ Browser-side WASI integration using `browser_wasi_shim`
+
+✓ Direct execution of GHC-generated WebAssembly inside the browser
+
+✓ Display of Haskell stdout on a webpage
+
+✓ Deployment and execution through GitHub Pages
 
 ---
 
-### What Did Not Work
+### Challenges Encountered
 
-Direct execution inside a standard browser environment was not achieved.
-
-The generated module depends on the WASI Preview1 API:
-
-```text
-wasi_snapshot_preview1
-```
-
-Current browsers do not expose these interfaces natively.
-
-As a result:
-
-* The WebAssembly binary can execute using wasm-run.
-* The same binary cannot execute directly inside GitHub Pages without additional runtime support.
+* Initial toolchain installation was affected by environment configuration issues.
+* The generated module depended on WASI Preview1 imports unavailable in browsers.
+* GitHub Pages deployment required bundling all browser WASI runtime assets.
+* Browser execution required investigation of WebAssembly imports and runtime dependencies.
+* Additional debugging was necessary to correctly package and deploy the WASI shim.
 
 ---
 
 ## Implications for xeus-haskell
 
-The evaluation indicates that the toolchain is functional and capable of generating valid WebAssembly output.
+The evaluation indicates that the current GHC/Wasm toolchain is capable of generating browser-executable WebAssembly modules.
 
-However, browser execution currently requires a compatibility layer.
-
-Potential requirements for future xeus-haskell integration:
+Potential requirements for future xeus-haskell integration include:
 
 1. Browser-side WASI implementation.
 2. Standard input/output redirection.
@@ -215,6 +267,7 @@ Potential requirements for future xeus-haskell integration:
 4. Runtime lifecycle management.
 5. Packaging and delivery of runtime assets.
 6. Integration between notebook cells and WebAssembly execution.
+7. Support for dynamic code execution and interactive evaluation.
 
 ---
 
@@ -223,9 +276,10 @@ Potential requirements for future xeus-haskell integration:
 The GHC/Wasm toolchain successfully supports:
 
 * Haskell → WebAssembly compilation
-* WebAssembly execution through the official runtime
-* Deployment of browser-facing applications
+* Execution through the official Node.js runtime
+* Execution inside modern browsers using a WASI compatibility layer
+* Deployment through GitHub Pages
 
-The primary limitation is browser-side execution because generated modules currently depend on the WASI Preview1 interface.
+This prototype demonstrates that browser-based execution of GHC-generated WebAssembly is technically feasible today.
 
-Overall, the toolchain appears mature enough for experimentation and future notebook integration work, but additional runtime infrastructure will be required before seamless browser-based execution can be achieved.
+While additional infrastructure will be required for notebook-style environments such as xeus-haskell and JupyterLite, the underlying toolchain is sufficiently mature for experimentation and future integration work.

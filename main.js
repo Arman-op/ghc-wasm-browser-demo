@@ -1,7 +1,7 @@
 import {
   WASI,
   ConsoleStdout
-} from "./node_modules/@bjorn3/browser_wasi_shim/dist/index.js";
+} from "./wasi-shim/index.js";
 
 const runBtn = document.getElementById("runBtn");
 const output = document.getElementById("output");
